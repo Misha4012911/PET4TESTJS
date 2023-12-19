@@ -8,7 +8,7 @@ function App() {
 
   useEffect(()=>{
     axios
-      .get('http://localhost:5000/users')
+      .get('http://localhost:5000/api/users')
       .then(response => {
         console.log(response.data);
         setUsers(response.data);

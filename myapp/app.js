@@ -1,9 +1,11 @@
 const express = require('express');
 const { Pool } = require('pg');
 const cors = require('cors');
+const bodyParser = require('body-parser');
+
 const app = express();
 
-app.use(cors());
+app.use(cors(),bodyParser.json());
 // const cors = require("cors");
 // app.use(cors({
 //   origin:"http://localhost:3000"
@@ -29,7 +31,7 @@ pool.query('SELECT NOW()', (err, result) => {
 });
 
 // Здесь должен быть остальной код вашего проекта Express
-app.get('/users', async (req, res) => {
+app.get('/api/users', async (req, res) => {
   const client = await pool.connect();
   try {
     const result = await client.query('SELECT id, login, name FROM public."Users"');
@@ -40,6 +42,21 @@ app.get('/users', async (req, res) => {
   }
 });
 
+// Обработчик POST запроса по маршруту '/api/register'
+app.post('/api/register', (req, res) => {
+  // Извлекаем данные из тела запроса
+  const { login, name, password_hash, email } = req.body;
+  // Выполняем запрос к базе данных для добавления нового пользователя
+  pool.query('INSERT INTO public."Users" (login, name, password_hash, email) VALUES ($1, $2, $3, $4)', [login, name, password_hash, email], (error, result) => {
+    // Если произошла ошибка, отправляем статус 500 и сообщение об ошибке
+    if (error) {
+      res.status(500).send('Error registering user');
+    } else { // В противном случае отправляем статус 200 и сообщение об успешной регистрации
+      res.status(200).send('User registered successfully');
+      console.log('Результат запроса:', result.rows[0]);
+    }
+  });
+});
 
 app.listen(5000, () => {
   console.log('Server is running on port 5000');
