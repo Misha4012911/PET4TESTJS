@@ -2,6 +2,7 @@ const express = require('express');
 const { Pool } = require('pg');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const bcrypt = require('bcrypt');
 
 const app = express();
 
@@ -44,16 +45,20 @@ app.get('/api/users', async (req, res) => {
 
 // Обработчик POST запроса по маршруту '/api/register'
 app.post('/api/register', (req, res) => {
-  // Извлекаем данные из тела запроса
-  const { login, name, password_hash, email } = req.body;
-  // Выполняем запрос к базе данных для добавления нового пользователя
-  pool.query('INSERT INTO public."Users" (login, name, password_hash, email) VALUES ($1, $2, $3, $4)', [login, name, password_hash, email], (error, result) => {
-    // Если произошла ошибка, отправляем статус 500 и сообщение об ошибке
-    if (error) {
-      res.status(500).send('Error registering user');
-    } else { // В противном случае отправляем статус 200 и сообщение об успешной регистрации
-      res.status(200).send('User registered successfully');
-      console.log('Результат запроса:', result.rows[0]);
+  const { login, name, password, email } = req.body;
+  // Хешируем пароль с использованием bcrypt
+  bcrypt.hash(password, 10, (err, password_hash) => {
+    if (err) {
+      res.status(500).send('Error hashing password');
+    } else {
+      pool.query('INSERT INTO public."Users" (login, name, password_hash, email) VALUES ($1, $2, $3, $4)', [login, name, password_hash, email], (error, result) => {
+        if (error) {
+          res.status(500).send('Error registering user');
+        } else {
+          res.status(200).send('User registered successfully');
+          console.log('Результат запроса:', result.rows[0]);
+        }
+      });
     }
   });
 });
