@@ -22,7 +22,7 @@ function App() {
     <div className='App'>
       {users.map(user => {
         return (
-          <p key={user.id}>{user.name} под логином {user.login}</p>  
+          <p key={user.id}>{user.username} под логином {user.login}</p>  
         );
       })}
     </div>
